@@ -1,0 +1,49 @@
+<div class="content background" [ngStyle]="moduleSettings.moduleBackgroundCss" >
+	<img class="background-image" src="{{backgroundImagePath}}" [ngStyle]="moduleSettings.moduleBackgroundImageCss">
+	<div class="main-content">
+		<div class="header">
+
+		</div>
+		<div class="text-content">
+			<!-- <img class="device-image" src="{{modulePath}}/images/device.png"> -->
+			<div *ngIf="stage == 'INTRO'">
+				THIS IS THE INTRO BOARD
+				<button (click)="startQuizz()">Start Quizz</button>
+			</div>
+
+			<div *ngIf="stage == 'QUIZZ'">
+				<div *ngFor="let answer of currentStep | keys | shuffle">
+
+					<div *ngIf="isAnswerDisplayed(answer.key)" [class.fade-in]="displayAnswerIndex == answer.key" >
+						<div (click)="chooseAnswer(answer.key)">{{answer.value}}</div>
+						<div (click)="listenAnswer(answer.key)">{{answer.key}}</div>
+					</div>
+				</div>
+			</div>
+
+			<div *ngIf="stage == 'RESULTS'">
+				{{quizzPoints}}
+				{{quizzResultsPercentage}}
+			</div>
+			<div class="bottom">
+				<img src="assets/generic/images/icon_smiley_happy{{smileyColourEnabled}}.png" [hidden]="satisfactoryLevel != 2" >
+				<img src="assets/generic/images/icon_smiley_ok{{smileyColourEnabled}}.png" [hidden]="satisfactoryLevel != 1" >
+				<img src="assets/generic/images/icon_smiley_sad{{smileyColourEnabled}}.png" [hidden]="satisfactoryLevel != 0" >
+				<button (click)="repeatLastStep()">Repeat last step</button>
+				<button (click)="toggleReadingMode()">
+					<span [hidden]="readingAloud">Enable reading</span>
+					<span [hidden]="readingAloud == false">Disable reading</span>
+				</button>
+
+			</div>
+		</div>
+		<div class="video-content">
+			<video #mainVideo (ended)="mainVideoEnded()" (timeupdate)="mainVideoTimeUpdate()"></video>
+			<video #naratorVideo [hidden]="!narating" id="narator-video" (ended)="naratorVideoEnded()" (timeupdate)="naratorVideoTimeUpdate()"></video>
+			<video id="waiting-video" [hidden]="!waiting" controls autoplay src="{{waitingVideoSrc}}" loop></video>
+			<div class="subtitles-container" *ngIf="subtitlesEnabled">{{currentSubtitleText}}</div>
+		</div>
+	</div>
+</div>
+<audio #answerAudio (ended)="answerAudioEnded()"></audio>
+<audio #guideAudio (ended)="guideAudioEnded()"></audio>

@@ -1,0 +1,41 @@
+page-quizz {
+	.content {
+		height: 100%;
+	}
+	.main-content {
+		display: flex;
+		align-items: center;
+	}
+	.device-image {
+		position: absolute;
+	}
+	#waiting-video {
+		position: absolute;
+		z-index: 999;
+		top: 0;
+		left: 0;
+	}
+
+	#narator-video {
+		position: absolute;
+		top: 0;
+		left: 0;
+	}
+
+	.text-content {
+		max-width: 50%;
+	}
+
+	.video-content {
+		position: relative;
+	}
+
+	.fade-in {
+		animation: fade-in 1.2s linear forwards;
+	}
+
+	.subtitles-container {
+		z-index: 999;
+	}
+
+}

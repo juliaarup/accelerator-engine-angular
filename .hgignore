@@ -1,0 +1,5 @@
+node_modules/
+src/assets/generic
+src/assets/modules
+.sourcemaps/
+www/
