@@ -1,3 +1,36 @@
 page-intro {
+	.content {
+		height: 100%;
+	}
+	.page-content {
+		flex-direction: column;
+	}
+
+	.logo {
+		padding: 18px 64px;
+		float: right;
+	}
+
+	.header {
+		width: 100%;
+		position: relative;
+		height: 84px;
+		flex-direction: row;
+	}
+
+	.header-title {
+		color: #fff;
+		position: absolute;
+		bottom: 0;
+		left: 62px;
+		display: inline-block;
+		font-size: 18px;
+	}
+
+	.body-boxed {
+		border-style: solid;
+		border-radius: 10px;
+	}
+
 
 }

@@ -1,0 +1,20 @@
+
+	<div class="content background" [ngStyle]="configService.getConfigSettings().moduleBackgroundCss" >
+		<img class="background-image" [src]="configService.backgroundImagePath" [ngStyle]="configService.getConfigSettings().moduleBackgroundImageCss">
+		<div class="page-content">
+			<div class="header">
+				<div class="header-title">
+					<h1 class="moduleTitleConstant">{{ configService.getConfigData().moduleTitle }}</h1>
+				</div>
+				<div class="logo-holder">
+					<img class="logo" [src]="configService.logoImagePath">
+				</div>
+			</div>
+			<div class="body-content">
+				<div class="body-boxed">
+					<button (click)="chooseModule('welcomeme')">WelcomeMe</button>
+				</div>
+
+			</div>
+		</div>
+	</div>

@@ -11,7 +11,7 @@ import { Settings } from '../providers/providers';
 	templateUrl: 'app.html'
 })
 export class MyApp {
-	rootPage = "WelcomePage";
+	rootPage = "IntroPage";
 
 	@ViewChild(Nav) nav: Nav;
 

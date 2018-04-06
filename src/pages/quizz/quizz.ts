@@ -1,6 +1,7 @@
 import { Component, ViewChild } from '@angular/core';
 import { IonicPage, NavController, NavParams } from 'ionic-angular';
 import { HttpClient } from '@angular/common/http';
+import { ConfigService } from '../../providers/providers';
 import 'rxjs/add/operator/map';
 
 @IonicPage()
@@ -13,11 +14,6 @@ export class QuizzPage {
 	@ViewChild('naratorVideo') naratorVideoElement;
 	@ViewChild('answerAudio') answerAudioElement;
 	@ViewChild('guideAudio') guideAudioElement;
-	filesLoaded: boolean = false;
-	moduleName: string;
-	moduleSettings: any = {};
-	moduleData: any;
-	modulePath: string;
 	stage: string = "INTRO";
 	currentStep: any;
 	quizzLevel: number; // The level where the quizz is (number of questions answer up to the point)
@@ -29,54 +25,28 @@ export class QuizzPage {
 	waitingVideoSrc: string;
 	answerIndex: number = -1;
 	satisfactoryLevel: number = 2;
-	backgroundImagePath: string;
 	displayAnswerIndex: number = -1; // the index of the current answer to be displayed
 	readingAloud: boolean = false;
 	audioSource: string;
 	repeating: boolean = false;
 	narating: boolean = false;
 	guideAudioIndex: number = 0;
-	smileyColourEnabled: string;
 	subtitlesEnabled: boolean = true;
 	currentSubtitleText: string;
 	currentSubtitles: any;
 	currentSubtitleIndex: number;
-	constructor(public navCtrl: NavController, public navParams: NavParams, public http:HttpClient) {
+
+	constructor(public navCtrl: NavController, public navParams: NavParams, public http:HttpClient, public configService: ConfigService) {
 	}
+
 
 	ionViewWillLoad() {
-		this.moduleName = this.navParams.get("moduleName");
-		if (! this.moduleName) {
-			this.moduleName = "welcomeme";
-		}
-		this.modulePath = "assets/modules/" + this.moduleName + "/";
-		this.loadModuleFiles();
-	}
-
-	/**
-	 * Loading module files;
-	 */
-	private loadModuleFiles() {
-		this.http.get(this.modulePath + "moduleSettings.json")
-		.subscribe(json => {
-			this.moduleSettings = json;
-			this.http.get(this.modulePath + "moduleData.json")
-			.subscribe(json => {
-				this.moduleData = json;
-				this.filesLoaded = true;
-				this.initStyles();
-			});
-		});
 	}
 
 	/**
 	 * Settings the styles based on received options
 	 */
 	private initStyles() {
-		this.backgroundImagePath = this.modulePath + "images/" + this.moduleSettings.moduleBackgroundImage;
-		if (this.moduleSettings.useColourSmiley) {
-			this.smileyColourEnabled = "_colour";
-		}
 	}
 
 	/**
@@ -86,11 +56,11 @@ export class QuizzPage {
 	 * Setting the stage of the app ("QUIZZ")
 	 */
 	startQuizz() {
-		this.streamLevel = this.moduleSettings.answersAvailable - this.moduleSettings.answersDisplayed;
+		this.streamLevel = this.configService.getConfigSettings().answersAvailable - this.configService.getConfigSettings().answersDisplayed;
 		this.quizzLevel = -1;
 		this.quizzPoints = 0;
 		this.stage = "QUIZZ";
-		this.stepsLength = Object.keys(this.moduleData.steps).length;
+		this.stepsLength = Object.keys(this.configService.getConfigData().steps).length;
 		this.displayAnswerIndex = this.streamLevel - 1;
 		this.setWaitingVideo();
 		this.nextGuideAudio();
@@ -103,9 +73,9 @@ export class QuizzPage {
 	nextGuideAudio() {
 		this.guideAudioIndex++;
 		if (this.guideAudioIndex <= 4) {
-			var source = "assets/generic/audio/narrator/en-gb/" + this.moduleSettings.narrator + "/Module_Guide_B" + this.guideAudioIndex;
+			var source = "assets/generic/audio/narrator/en-gb/" + this.configService.getConfigSettings().narrator + "/Module_Guide_B" + this.guideAudioIndex;
 			if (this.guideAudioIndex == 1) {
-				source += "_" + this.moduleSettings.characterType;
+				source += "_" + this.configService.getConfigSettings().characterType;
 			}
 			source += ".mp3";
 			this.guideAudioElement.nativeElement.src = source;
@@ -146,13 +116,13 @@ export class QuizzPage {
 			this.quizzLevel++;
 		}
 
-		if (this.narating == false && this.moduleSettings.narratorBeforeSteps.indexOf (this.quizzLevel) > -1 ) {
+		if (this.narating == false && this.configService.getConfigSettings().narratorBeforeSteps.indexOf (this.quizzLevel) > -1 ) {
 			this.loadNaratorVideo();
 			this.narating = true;
 			return;
 		}
 
-		if (this.moduleSettings.immediateFeedback == false) {
+		if (this.configService.getConfigSettings().immediateFeedback == false) {
 			this.calculateSatisfactoryLevel();
 		}
 
@@ -165,7 +135,7 @@ export class QuizzPage {
 			return;
 		}
 		this.displayAnswerIndex = this.streamLevel - 1;
-		this.currentStep = this.moduleData.steps['step' + this.quizzLevel];
+		this.currentStep = this.configService.getConfigData().steps['step' + this.quizzLevel];
 		this.displayNextAnswer();
 	}
 
@@ -174,7 +144,7 @@ export class QuizzPage {
 	 * If readingAloud is enabled, plays the specific audio and display next answer only after the audio has ended
 	 */
 	private displayNextAnswer() {
-		if (this.displayAnswerIndex < this.moduleSettings.answersDisplayed) {
+		if (this.displayAnswerIndex < this.configService.getConfigSettings().answersDisplayed) {
 			this.displayAnswerIndex++;
 			if (this.readingAloud == false) {
 				setTimeout(() => {
@@ -194,7 +164,7 @@ export class QuizzPage {
 	 * @param {String} audioName - the name of the audio file
 	 */
 	private getAudioSource(audioName: string) : string {
-		return this.modulePath + "/audio/" + audioName + ".mp3";
+		return this.configService.modulePath + "/audio/" + audioName + ".mp3";
 	}
 
 	/**
@@ -203,7 +173,7 @@ export class QuizzPage {
 	 * @param {any} answerIndex - can be string or number
 	 */
 	isAnswerDisplayed(answerIndex: any) : boolean {
-		var display =  (answerIndex > this.streamLevel - 1) && (answerIndex < (this.streamLevel + this.moduleSettings.answersDisplayed));
+		var display =  (answerIndex > this.streamLevel - 1) && (answerIndex < (this.streamLevel + this.configService.getConfigSettings().answersDisplayed));
 		if (display && answerIndex <= this.displayAnswerIndex) {
 			return true;
 		}
@@ -248,7 +218,7 @@ export class QuizzPage {
 		this.quizzPoints+= this.answerIndex;
 		this.currentSubtitleText = this.currentStep[this.answerIndex];
 		this.loadVideo((this.quizzLevel+1) + String.fromCharCode(97 + this.answerIndex));
-		if (this.moduleSettings.immediateFeedback) {
+		if (this.configService.getConfigSettings().immediateFeedback) {
 			this.calculateSatisfactoryLevel();
 		}
 	}
@@ -264,7 +234,7 @@ export class QuizzPage {
 			return;
 		}
 		var localAnswerIndex = this.answerIndex - this.streamLevel;
-		var half = (this.moduleSettings.answersDisplayed - 1) / 2;
+		var half = (this.configService.getConfigSettings().answersDisplayed - 1) / 2;
 		if (localAnswerIndex < half) {
 			this.satisfactoryLevel = 0;
 		} else if (localAnswerIndex > half) {
@@ -281,7 +251,7 @@ export class QuizzPage {
 	 */
 	private loadVideo(videoName: string) {
 		this.resetSubtitles();
-		this.currentSubtitles = this.moduleData.subtitles[videoName];
+		this.currentSubtitles = this.configService.getConfigData().subtitles[videoName];
 		this.mainVideoElement.nativeElement.src = this.getVideoSource(videoName);
 		this.mainVideoElement.nativeElement.play();
 		setTimeout(() => {
@@ -296,7 +266,7 @@ export class QuizzPage {
 	private loadNaratorVideo() {
 		var videoName = (this.quizzLevel + 1) + "N";
 		this.resetSubtitles();
-		this.currentSubtitles = this.moduleData.subtitles[videoName];
+		this.currentSubtitles = this.configService.getConfigData().subtitles[videoName];
 		this.naratorVideoElement.nativeElement.src = this.getVideoSource(videoName);
 		this.naratorVideoElement.nativeElement.play();
 	}
@@ -323,6 +293,10 @@ export class QuizzPage {
 	 * @param {String} currentTime - the current time of the video
 	 */
 	private videoTimeUpdate(currentTime) {
+		console.log(this.currentSubtitles);
+		if (this.currentSubtitles == undefined) {
+			return;
+		}
 		if (this.subtitlesEnabled == false || (this.currentSubtitleIndex == this.currentSubtitles.length)) {
 			return;
 		}
@@ -361,7 +335,7 @@ export class QuizzPage {
 		if (subtitlesOn) {
 			videoName = videoName + "ST";
 		}
-		return this.modulePath + "/video/" + videoName + ".mp4";
+		return this.configService.modulePath + "/video/" + videoName + ".mp4";
 	}
 
 	/**
@@ -379,8 +353,8 @@ export class QuizzPage {
 	 * Setting the waiting video based on the setting
 	 */
 	private setWaitingVideo() {
-		var videoName = this.moduleSettings.waitingVideoName;
-		var waitingVideosArray = this.moduleSettings.waitingVideoOverrides;
+		var videoName = this.configService.getConfigSettings().waitingVideoName;
+		var waitingVideosArray = this.configService.getConfigSettings().waitingVideoOverrides;
 		for (let waitingVideoObject of waitingVideosArray) {
 			if (waitingVideoObject.steps.indexOf(this.quizzLevel) > - 1) {
 				videoName = waitingVideoObject.filename;
@@ -394,13 +368,13 @@ export class QuizzPage {
 	 */
 	private calculateStreamLevel() {
 		var localAnswerIndex = this.answerIndex - this.streamLevel;
-		var half = (this.moduleSettings.answersDisplayed - 1) / 2;
+		var half = (this.configService.getConfigSettings().answersDisplayed - 1) / 2;
 		if (localAnswerIndex < half) {
 			if (this.streamLevel > 0) {
 				this.streamLevel--;
 			}
 		} else if (localAnswerIndex > half) {
-			if (this.streamLevel != (this.moduleSettings.answersAvailable - this.moduleSettings.answersDisplayed)) {
+			if (this.streamLevel != (this.configService.getConfigSettings().answersAvailable - this.configService.getConfigSettings().answersDisplayed)) {
 				this.streamLevel++;
 			}
 		}
@@ -440,12 +414,12 @@ export class QuizzPage {
 	 * Called either when quizz steps ends, or if quizz was dropped (too low level)
 	 */
 	private displayResults() {
-		if (this.moduleSettings.resultsAudio) {
+		if (this.configService.getConfigSettings().resultsAudio) {
 			this.guideAudioElement.nativeElement.src = this.getAudioSource("narrator_conclusion");
 			this.guideAudioElement.nativeElement.play();
 		}
 		this.stage = "RESULTS";
-		this.quizzResultsPercentage = this.quizzPoints / ((this.moduleSettings.answersAvailable - 1) * this.stepsLength) * 100;
+		this.quizzResultsPercentage = this.quizzPoints / ((this.configService.getConfigSettings().answersAvailable - 1) * this.stepsLength) * 100;
 	}
 
 

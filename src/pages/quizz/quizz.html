@@ -1,5 +1,5 @@
-<div class="content background" [ngStyle]="moduleSettings.moduleBackgroundCss" >
-	<img class="background-image" src="{{backgroundImagePath}}" [ngStyle]="moduleSettings.moduleBackgroundImageCss">
+<div class="content background" [ngStyle]="configService.getConfigSettings().moduleBackgroundCss" >
+	<img class="background-image" src="{{configService.backgroundImagePath}}" [ngStyle]="configService.getConfigSettings().moduleBackgroundImageCss">
 	<div class="main-content">
 		<div class="header">
 
@@ -10,7 +10,6 @@
 				THIS IS THE INTRO BOARD
 				<button (click)="startQuizz()">Start Quizz</button>
 			</div>
-
 			<div *ngIf="stage == 'QUIZZ'">
 				<div *ngFor="let answer of currentStep | keys | shuffle">
 
@@ -26,9 +25,9 @@
 				{{quizzResultsPercentage}}
 			</div>
 			<div class="bottom">
-				<img src="assets/generic/images/icon_smiley_happy{{smileyColourEnabled}}.png" [hidden]="satisfactoryLevel != 2" >
-				<img src="assets/generic/images/icon_smiley_ok{{smileyColourEnabled}}.png" [hidden]="satisfactoryLevel != 1" >
-				<img src="assets/generic/images/icon_smiley_sad{{smileyColourEnabled}}.png" [hidden]="satisfactoryLevel != 0" >
+				<img src="assets/generic/images/icon_smiley_happy{{configService.smileyColourEnabled}}.png" [hidden]="satisfactoryLevel != 2" >
+				<img src="assets/generic/images/icon_smiley_ok{{configService.smileyColourEnabled}}.png" [hidden]="satisfactoryLevel != 1" >
+				<img src="assets/generic/images/icon_smiley_sad{{configService.smileyColourEnabled}}.png" [hidden]="satisfactoryLevel != 0" >
 				<button (click)="repeatLastStep()">Repeat last step</button>
 				<button (click)="toggleReadingMode()">
 					<span [hidden]="readingAloud">Enable reading</span>

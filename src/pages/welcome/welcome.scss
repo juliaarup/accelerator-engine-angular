@@ -1,5 +1,8 @@
 page-welcome {
-  .splash-bg {
+  .content {
+    height: 100%;
+  }
+.splash-bg {
     position: relative;
     background: url('../assets/img/splashbg.png') no-repeat transparent;
     background-size: cover;
@@ -43,4 +46,5 @@ page-welcome {
       background-color: rgb(220, 220, 220);
     }
   }
+
 }
