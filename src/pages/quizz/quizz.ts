@@ -2,6 +2,7 @@ import { Component, ViewChild } from '@angular/core';
 import { IonicPage, NavController, NavParams } from 'ionic-angular';
 import { HttpClient } from '@angular/common/http';
 import { ConfigService } from '../../providers/providers';
+import { ConfigData, ConfigSettings } from '../../providers/configs/configs'
 import 'rxjs/add/operator/map';
 
 @IonicPage()
@@ -35,12 +36,16 @@ export class QuizzPage {
 	currentSubtitleText: string;
 	currentSubtitles: any;
 	currentSubtitleIndex: number;
+	configData: ConfigData = {} as ConfigData;
+	configSettings: ConfigSettings = {} as ConfigSettings;
 
 	constructor(public navCtrl: NavController, public navParams: NavParams, public http:HttpClient, public configService: ConfigService) {
 	}
 
 
 	ionViewWillLoad() {
+		this.configData = this.configService.getConfigData();
+		this.configSettings = this.configService.getConfigSettings();
 	}
 
 	/**
@@ -56,11 +61,11 @@ export class QuizzPage {
 	 * Setting the stage of the app ("QUIZZ")
 	 */
 	startQuizz() {
-		this.streamLevel = this.configService.getConfigSettings().answersAvailable - this.configService.getConfigSettings().answersDisplayed;
+		this.streamLevel = this.configSettings.answersAvailable - this.configSettings.answersDisplayed;
 		this.quizzLevel = -1;
 		this.quizzPoints = 0;
 		this.stage = "QUIZZ";
-		this.stepsLength = Object.keys(this.configService.getConfigData().steps).length;
+		this.stepsLength = Object.keys(this.configData.steps).length;
 		this.displayAnswerIndex = this.streamLevel - 1;
 		this.setWaitingVideo();
 		this.nextGuideAudio();
@@ -73,9 +78,9 @@ export class QuizzPage {
 	nextGuideAudio() {
 		this.guideAudioIndex++;
 		if (this.guideAudioIndex <= 4) {
-			var source = "assets/generic/audio/narrator/en-gb/" + this.configService.getConfigSettings().narrator + "/Module_Guide_B" + this.guideAudioIndex;
+			var source = "assets/generic/audio/narrator/en-gb/" + this.configSettings.narrator + "/Module_Guide_B" + this.guideAudioIndex;
 			if (this.guideAudioIndex == 1) {
-				source += "_" + this.configService.getConfigSettings().characterType;
+				source += "_" + this.configSettings.characterType;
 			}
 			source += ".mp3";
 			this.guideAudioElement.nativeElement.src = source;
@@ -116,13 +121,13 @@ export class QuizzPage {
 			this.quizzLevel++;
 		}
 
-		if (this.narating == false && this.configService.getConfigSettings().narratorBeforeSteps.indexOf (this.quizzLevel) > -1 ) {
+		if (this.narating == false && this.configSettings.narratorBeforeSteps.indexOf (this.quizzLevel) > -1 ) {
 			this.loadNaratorVideo();
 			this.narating = true;
 			return;
 		}
 
-		if (this.configService.getConfigSettings().immediateFeedback == false) {
+		if (this.configSettings.immediateFeedback == false) {
 			this.calculateSatisfactoryLevel();
 		}
 
@@ -135,7 +140,7 @@ export class QuizzPage {
 			return;
 		}
 		this.displayAnswerIndex = this.streamLevel - 1;
-		this.currentStep = this.configService.getConfigData().steps['step' + this.quizzLevel];
+		this.currentStep = this.configData.steps['step' + this.quizzLevel];
 		this.displayNextAnswer();
 	}
 
@@ -144,7 +149,7 @@ export class QuizzPage {
 	 * If readingAloud is enabled, plays the specific audio and display next answer only after the audio has ended
 	 */
 	private displayNextAnswer() {
-		if (this.displayAnswerIndex < this.configService.getConfigSettings().answersDisplayed) {
+		if (this.displayAnswerIndex < this.configSettings.answersDisplayed) {
 			this.displayAnswerIndex++;
 			if (this.readingAloud == false) {
 				setTimeout(() => {
@@ -173,7 +178,7 @@ export class QuizzPage {
 	 * @param {any} answerIndex - can be string or number
 	 */
 	isAnswerDisplayed(answerIndex: any) : boolean {
-		var display =  (answerIndex > this.streamLevel - 1) && (answerIndex < (this.streamLevel + this.configService.getConfigSettings().answersDisplayed));
+		var display =  (answerIndex > this.streamLevel - 1) && (answerIndex < (this.streamLevel + this.configSettings.answersDisplayed));
 		if (display && answerIndex <= this.displayAnswerIndex) {
 			return true;
 		}
@@ -218,7 +223,7 @@ export class QuizzPage {
 		this.quizzPoints+= this.answerIndex;
 		this.currentSubtitleText = this.currentStep[this.answerIndex];
 		this.loadVideo((this.quizzLevel+1) + String.fromCharCode(97 + this.answerIndex));
-		if (this.configService.getConfigSettings().immediateFeedback) {
+		if (this.configSettings.immediateFeedback) {
 			this.calculateSatisfactoryLevel();
 		}
 	}
@@ -234,7 +239,7 @@ export class QuizzPage {
 			return;
 		}
 		var localAnswerIndex = this.answerIndex - this.streamLevel;
-		var half = (this.configService.getConfigSettings().answersDisplayed - 1) / 2;
+		var half = (this.configSettings.answersDisplayed - 1) / 2;
 		if (localAnswerIndex < half) {
 			this.satisfactoryLevel = 0;
 		} else if (localAnswerIndex > half) {
@@ -251,7 +256,7 @@ export class QuizzPage {
 	 */
 	private loadVideo(videoName: string) {
 		this.resetSubtitles();
-		this.currentSubtitles = this.configService.getConfigData().subtitles[videoName];
+		this.currentSubtitles = this.configData.subtitles[videoName];
 		this.mainVideoElement.nativeElement.src = this.getVideoSource(videoName);
 		this.mainVideoElement.nativeElement.play();
 		setTimeout(() => {
@@ -266,7 +271,7 @@ export class QuizzPage {
 	private loadNaratorVideo() {
 		var videoName = (this.quizzLevel + 1) + "N";
 		this.resetSubtitles();
-		this.currentSubtitles = this.configService.getConfigData().subtitles[videoName];
+		this.currentSubtitles = this.configData.subtitles[videoName];
 		this.naratorVideoElement.nativeElement.src = this.getVideoSource(videoName);
 		this.naratorVideoElement.nativeElement.play();
 	}
@@ -353,8 +358,8 @@ export class QuizzPage {
 	 * Setting the waiting video based on the setting
 	 */
 	private setWaitingVideo() {
-		var videoName = this.configService.getConfigSettings().waitingVideoName;
-		var waitingVideosArray = this.configService.getConfigSettings().waitingVideoOverrides;
+		var videoName = this.configSettings.waitingVideoName;
+		var waitingVideosArray = this.configSettings.waitingVideoOverrides;
 		for (let waitingVideoObject of waitingVideosArray) {
 			if (waitingVideoObject.steps.indexOf(this.quizzLevel) > - 1) {
 				videoName = waitingVideoObject.filename;
@@ -368,13 +373,13 @@ export class QuizzPage {
 	 */
 	private calculateStreamLevel() {
 		var localAnswerIndex = this.answerIndex - this.streamLevel;
-		var half = (this.configService.getConfigSettings().answersDisplayed - 1) / 2;
+		var half = (this.configSettings.answersDisplayed - 1) / 2;
 		if (localAnswerIndex < half) {
 			if (this.streamLevel > 0) {
 				this.streamLevel--;
 			}
 		} else if (localAnswerIndex > half) {
-			if (this.streamLevel != (this.configService.getConfigSettings().answersAvailable - this.configService.getConfigSettings().answersDisplayed)) {
+			if (this.streamLevel != (this.configSettings.answersAvailable - this.configSettings.answersDisplayed)) {
 				this.streamLevel++;
 			}
 		}
@@ -414,12 +419,12 @@ export class QuizzPage {
 	 * Called either when quizz steps ends, or if quizz was dropped (too low level)
 	 */
 	private displayResults() {
-		if (this.configService.getConfigSettings().resultsAudio) {
+		if (this.configSettings.resultsAudio) {
 			this.guideAudioElement.nativeElement.src = this.getAudioSource("narrator_conclusion");
 			this.guideAudioElement.nativeElement.play();
 		}
 		this.stage = "RESULTS";
-		this.quizzResultsPercentage = this.quizzPoints / ((this.configService.getConfigSettings().answersAvailable - 1) * this.stepsLength) * 100;
+		this.quizzResultsPercentage = this.quizzPoints / ((this.configSettings.answersAvailable - 1) * this.stepsLength) * 100;
 	}
 
 
