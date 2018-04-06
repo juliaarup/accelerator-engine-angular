@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { IonicPage, NavController } from 'ionic-angular';
+import { IonicPage, NavController, NavParams } from 'ionic-angular';
 import { QuizzPage } from '../pages';
 
 @IonicPage(
@@ -19,5 +19,6 @@ export class WelcomePage {
 	chooseModule(moduleName) {
 		this.navCtrl.push(QuizzPage, {moduleName: moduleName});
 	}
+
 
 }
